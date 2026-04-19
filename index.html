@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FindIt — Найди лучшую цену</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #2563EB;
+            --secondary: #1E293B;
+            --accent: #10B981;
+            --background: #F8FAFC;
+            --surface: #FFFFFF;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --error: #EF4444;
+            --warning: #F59E0B;
+            --border: #e5e7eb;
+        }
+        
+        [data-theme="dark"] {
+            --primary: #3B82F6;
+            --secondary: #F8FAFC;
+            --accent: #34D399;
+            --background: #0F172A;
+            --surface: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --error: #EF4444;
+            --warning: #FBBF24;
+            --border: #334155;
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-icon svg { width: 20px; height: 20px; color: white; }
+        .logo-text { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+        .search-wrapper { flex: 1; max-width: 600px; }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 9999px;
+            padding: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .search-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .search-box input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 12px 16px;
+            font-size: 16px;
+            font-family: inherit;
+            background: transparent;
+            color: var(--text-primary);
+        }
+        .search-box button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 9999px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+        .search-box button:hover { background: #1d4ed8; }
+        .main { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+        .hero {
+            text-align: center;
+            padding: 48px 16px;
+        }
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .hero h1 span { color: var(--primary); }
+        .hero p {
+            font-size: 20px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+        .popular {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+        .popular span { color: var(--text-secondary); font-size: 14px; }
+        .popular a {
+            padding: 6px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 9999px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .popular a:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .filters {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            align-items: center;
+        }
+        .filters select {
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            background: var(--surface);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .results-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .results-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+        .product-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+        }
+        .product-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        .product-image {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            background: var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .product-image img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        .discount-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: var(--accent);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .product-title {
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 40px;
+        }
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .stars { color: var(--warning); }
+        .product-price {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .price-current {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .price-old {
+            color: var(--text-secondary);
+            text-decoration: line-through;
+            font-size: 14px;
+        }
+        .product-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 12px;
+        }
+        .shop-badge {
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+        .shop-wb { background: #D3167920; color: #D31679; }
+        .shop-ozon { background: #005BFF20; color: #005BFF; }
+        .shop-yandex { background: #FC3F1D20; color: #FC3F1D; }
+        .shop-logo { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; top: 8px; right: 8px; z-index: 5; box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-size: 12px; font-weight: 700; color: white; }
+        .shop-logo-wb { background: #D31679; }
+        .shop-logo-ozon { background: #005BFF; }
+        .shop-logo-yandex { background: #FC3F1D; }
+        .distance { color: var(--text-secondary); }
+        .product-tags {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .tag {
+            flex: 1;
+            text-align: center;
+            padding: 6px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .tag-instock { background: var(--accent)15; color: var(--accent); }
+        .tag-delivery { background: var(--primary)15; color: var(--primary); }
+        .buy-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .buy-btn:hover { background: #1d4ed8; }
+        .footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 32px 16px;
+            text-align: center;
+            margin-top: 48px;
+        }
+        .loading {
+            text-align: center;
+            padding: 48px;
+            color: var(--text-secondary);
+        }
+        .hidden { display: none !important; }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 32px; }
+            .hero p { font-size: 16px; }
+            .logo-text { display: none; }
+            .header-content { gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <span class="logo-text">FindIt</span>
+            </a>
+            <button id="themeToggle" onclick="toggleTheme()" style="margin-left: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-primary);">
+                <span id="themeIcon">🌙</span>
+                <span id="themeText">Тёмная</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="main">
+        <section id="hero" class="hero">
+            <h1>Найди лучшую <span>цену</span></h1>
+            <p>Сравни предложения со всех маркетплейсов и найди товар рядом с тобой</p>
+            <div class="search-wrapper" style="max-width: 600px; margin: 0 auto;">
+                <div class="search-box" style="padding: 8px;">
+                    <input type="text" id="mainSearch" placeholder="Опишите, что вы ищете..." style="padding: 16px;">
+                    <button onclick="doSearch()" style="padding: 16px 32px; font-size: 16px;">Найти</button>
+                </div>
+            </div>
+            <div class="popular">
+                <span>Категории:</span>
+                <a href="#" onclick="quickSearch('iPhone')">iPhone</a>
+                <a href="#" onclick="quickSearch('Samsung')">Samsung</a>
+                <a href="#" onclick="quickSearch('MacBook')">MacBook</a>
+                <a href="#" onclick="quickSearch('PlayStation')">PlayStation</a>
+                <a href="#" onclick="quickSearch('AirPods')">AirPods</a>
+                <a href="#" onclick="quickSearch('Galaxy Watch')">Galaxy Watch</a>
+                <a href="#" onclick="quickSearch('iPad')">iPad</a>
+                <a href="#" onclick="quickSearch('Canon')">Камеры</a>
+                <a href="#" onclick="quickSearch('OLED')">Телевизоры</a>
+                <a href="#" onclick="quickSearch('Dyson')">Dyson</a>
+                <a href="#" onclick="quickSearch('DJI')">Дроны</a>
+                <a href="#" onclick="quickSearch('Sony')">Sony</a>
+                <a href="#" onclick="quickSearch('Xiaomi')">Xiaomi</a>
+                <a href="#" onclick="quickSearch('JBL')">Колонки</a>
+                <a href="#" onclick="quickSearch('Logitech')">Аксессуары</a>
+            </div>
+        </section>
+
+        <section id="results" class="hidden">
+            <div class="results-header">
+                <div>
+                    <h2>Результаты по запросу "<span id="queryText"></span>"</h2>
+                    <p id="totalResults">Найдено предложений: 0</p>
+                </div>
+            </div>
+
+            <div class="filters">
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <input type="text" id="customCity" placeholder="Ваш город..." style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; width: 180px; background: var(--surface); color: var(--text-primary);">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="font-size: 12px; color: var(--text-secondary); font-weight: 500; text-align: center;">Цена, ₽</span>
+                    <div style="display: flex; gap: 4px; align-items: center; justify-content: center;">
+                        <input type="number" id="priceMin" placeholder="От" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; width: 100px; background: var(--surface); color: var(--text-primary);">
+                        <span style="color: var(--text-secondary);">—</span>
+                        <input type="number" id="priceMax" placeholder="До" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; width: 100px; background: var(--surface); color: var(--text-primary);">
+                    </div>
+                </div>
+                <select id="deliveryTime">
+                    <option value="">Любой срок</option>
+                    <option value="1">За 1 день</option>
+                    <option value="2">За 2 дня</option>
+                    <option value="3">За 3 дня</option>
+                    <option value="5">До 5 дней</option>
+                    <option value="7">До недели</option>
+                    <option value="14">До 2 недель</option>
+                </select>
+                <select id="regionSelect">
+                    <option value="">Ближайший крупный город</option>
+                    <option value="moscow">Москва</option>
+                    <option value="spb">Санкт-Петербург</option>
+                    <option value="novosibirsk">Новосибирск</option>
+                    <option value="ekb">Екатеринбург</option>
+                    <option value="kazan">Казань</option>
+                    <option value="krasnodar">Краснодар</option>
+                    <option value="nizhny">Нижний Новгород</option>
+                    <option value="samara">Самара</option>
+                    <option value="rostov">Ростов-на-Дону</option>
+                    <option value="ufa">Уфа</option>
+                    <option value="voronezh">Воронеж</option>
+                    <option value="perm">Пермь</option>
+                    <option value="volgograd">Волгоград</option>
+                    <option value="krasnoyarsk">Красноярск</option>
+                    <option value="tyumen">Тюмень</option>
+                    <option value="irkutsk">Иркутск</option>
+                    <option value="khabarovsk">Хабаровск</option>
+                    <option value="vladivostok">Владивосток</option>
+                    <option value="kaliningrad">Калининград</option>
+                </select>
+                <label class="filter-checkbox">
+                    <input type="checkbox" id="filterWb" checked> Wildberries
+                </label>
+                <label class="filter-checkbox">
+                    <input type="checkbox" id="filterOzon" checked> Ozon
+                </label>
+                <label class="filter-checkbox">
+                    <input type="checkbox" id="filterYandex" checked> Яндекс.Маркет
+                </label>
+                <select id="sortSelect">
+                    <option value="price">По цене</option>
+                    <option value="rating">По рейтингу</option>
+                    <option value="distance">По расстоянию</option>
+                </select>
+            </div>
+
+            <div class="products-grid" id="productsGrid"></div>
+            
+            <div id="loading" class="loading hidden">
+                Загрузка...
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="logo" style="justify-content: center; margin-bottom: 16px;">
+            <div class="logo-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </div>
+            <span class="logo-text">FindIt</span>
+        </div>
+        <p style="color: #9ca3af; font-size: 14px;">Агрегатор товаров с маркетплейсов</p>
+    </footer>
+
+    <script>
+        const CATEGORY_IMAGES = {
+            smartphones: [
+                'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400',
+                'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=400',
+                'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400',
+            ],
+            laptops: [
+                'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400',
+                'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400',
+                'https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=400',
+            ],
+            headphones: [
+                'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
+                'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400',
+                'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400',
+            ],
+            watches: [
+                'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+                'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=400',
+                'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400',
+            ],
+            tablets: [
+                'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400',
+                'https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=400',
+                'https://images.unsplash.com/photo-1544707017-2eb9f3879b40?w=400',
+            ],
+            gaming: [
+                'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400',
+                'https://images.unsplash.com/photo-1621259182978-fbf93132d53d?w=400',
+                'https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=400',
+            ],
+            tv: [
+                'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400',
+                'https://images.unsplash.com/photo-1461151304267-38535e780c79?w=400',
+                'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=400',
+            ],
+            appliances: [
+                'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=400',
+                'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
+                'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400',
+            ],
+            cameras: [
+                'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=400',
+                'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400',
+                'https://images.unsplash.com/photo-1510127034890-ba27508e9f1c?w=400',
+            ],
+            audio: [
+                'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400',
+                'https://images.unsplash.com/photo-1608043514148-f98def5c31f6?w=400',
+                'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=400',
+            ],
+                accessories: [
+                    { brand: 'Logitech', models: ['MX Master 3S', 'MX Keys', 'G502 Hero', 'G Pro X', 'MX Keys S', 'G Pro Wireless'], prices: [9990, 7990, 6990, 9990, 6990, 12990] },
+                    { brand: 'Keychron', models: ['Q1 Pro', 'K2 Pro', 'K8 Pro', 'K3 Pro', 'Q3 Pro', 'Q5 Pro'], prices: [14990, 8990, 10990, 6990, 17990, 19990] },
+                    { brand: 'Anker', models: ['PowerCore 20000', 'PowerCore 26800', 'PowerDrive', '533', 'PowerCore Slim'], prices: [3990, 4990, 1990, 2990, 2990] },
+                    { brand: 'Razer', models: ['DeathAdder V3', 'Basilisk V3', 'BlackWidow V4', 'Huntsman V2'], prices: [5990, 7990, 12990, 9990] },
+                    { brand: 'Corsair', models: ['K65 RGB', 'K70 RGB', 'Harpoon Wireless', 'Ironclaw RGB'], prices: [8990, 12990, 5990, 6990] },
+                ],
+            ssd: [
+                'https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=400',
+                'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=400',
+                'https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=400',
+            ],
+            external: [
+                'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=400',
+                'https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=400',
+                'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=400',
+            ],
+            drones: [
+                'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=400',
+                'https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=400',
+                'https://images.unsplash.com/photo-1506947411487-a56738267384?w=400',
+            ],
+            smart: [
+                'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400',
+                'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
+                'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?w=400',
+            ],
+            beauty: [
+                'https://images.unsplash.com/photo-1522338140262-f46f59124f36?w=400',
+                'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=400',
+                'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400',
+            ],
+            sports: [
+                'https://images.unsplash.com/photo-1576243345690-4e4b79b63288?w=400',
+                'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400',
+                'https://images.unsplash.com/photo-1434596922112-19c563067271?w=400',
+            ],
+        };
+
+        function generateProducts() {
+            const brands = {
+                smartphones: [
+                    { brand: 'Apple', models: ['iPhone 14', 'iPhone 15', 'iPhone 15 Pro', 'iPhone 15 Pro Max', 'iPhone SE'], prices: [59990, 79990, 109990, 129990, 99990] },
+                    { brand: 'Samsung', models: ['Galaxy S23', 'Galaxy S24', 'Galaxy S24 Ultra', 'Galaxy A54', 'Galaxy A34', 'Galaxy Z Flip', 'Galaxy Z Fold'], prices: [49990, 69990, 99990, 24990, 19990, 79990, 139990] },
+                    { brand: 'Xiaomi', models: ['Redmi Note 12', 'Redmi Note 13', 'Redmi Note 13 Pro', 'Xiaomi 13', 'Xiaomi 14', 'POCO F5', 'POCO X5'], prices: [19990, 24990, 29990, 44990, 59990, 29990, 24990] },
+                    { brand: 'Huawei', models: ['P50 Pro', 'Mate 50', 'Nova 11', 'P60 Pro'], prices: [49990, 59990, 29990, 69990] },
+                    { brand: 'Google', models: ['Pixel 7', 'Pixel 7a', 'Pixel 8', 'Pixel 8 Pro'], prices: [49990, 34990, 69990, 89990] },
+                    { brand: 'OnePlus', models: ['Nord CE 3', 'Nord 3', 'OnePlus 11', 'OnePlus 12'], prices: [24990, 34990, 59990, 79990] },
+                    { brand: 'Realme', models: ['C55', 'Note 30', 'GT3', '11 Pro+'], prices: [12990, 14990, 29990, 24990] },
+                    { brand: 'Honor', models: ['X7a', 'X8b', '70', 'Magic 5 Pro'], prices: [11990, 16990, 29990, 59990] },
+                    { brand: 'OPPO', models: ['Reno 8', 'Reno 10', 'Find X5', 'Find X6 Pro'], prices: [29990, 39990, 49990, 79990] },
+                    { brand: 'Vivo', models: ['V27', 'V29', 'X90', 'X90 Pro'], prices: [29990, 34990, 49990, 69990] },
+                ],
+                laptops: [
+                    { brand: 'Apple', models: ['MacBook Air 13"', 'MacBook Air 15"', 'MacBook Pro 14"', 'MacBook Pro 16"'], prices: [89990, 119990, 179990, 249990] },
+                    { brand: 'ASUS', models: ['VivoBook 15', 'ZenBook 14', 'ROG Strix G16', 'ROG Zephyrus G14', 'ProArt Studiobook'], prices: [49990, 69990, 99990, 129990, 149990] },
+                    { brand: 'Lenovo', models: ['IdeaPad 3', 'IdeaPad 5', 'ThinkPad E14', 'ThinkPad X1', 'Legion 5', 'Legion 7'], prices: [44990, 64990, 79990, 129990, 99990, 149990] },
+                    { brand: 'HP', models: ['Pavilion 15', 'Envy 13', 'Spectre x360', 'Omen 16', 'Victus 15'], prices: [49990, 79990, 99990, 119990, 69990] },
+                    { brand: 'Dell', models: ['Inspiron 15', 'XPS 13', 'XPS 15', 'G15', 'Alienware m16'], prices: [54990, 99990, 139990, 109990, 179990] },
+                    { brand: 'Acer', models: ['Aspire 5', 'Swift 3', 'Nitro 5', 'Predator Helios'], prices: [44990, 69990, 79990, 129990] },
+                    { brand: 'MSI', models: ['Katana 15', 'Thin GF63', 'Stealth 16', 'Raider GE78'], prices: [79990, 99990, 149990, 199990] },
+                    { brand: 'Huawei', models: ['MateBook D14', 'MateBook D15', 'MateBook 14'], prices: [54990, 74990, 89990] },
+                ],
+                headphones: [
+                    { brand: 'Apple', models: ['AirPods 2', 'AirPods 3', 'AirPods Pro 2', 'AirPods Max'], prices: [12990, 17990, 24990, 59990] },
+                    { brand: 'Sony', models: ['WH-1000XM4', 'WH-1000XM5', 'WF-1000XM5', 'WH-CH720N'], prices: [24990, 34990, 19990, 9990] },
+                    { brand: 'Samsung', models: ['Galaxy Buds 2', 'Galaxy Buds 2 Pro', 'Galaxy Buds FE'], prices: [9990, 14990, 7990] },
+                    { brand: 'Xiaomi', models: ['Buds 3', 'Buds 4', 'Buds 4 Pro'], prices: [3990, 5990, 7990] },
+                    { brand: 'Bose', models: ['QuietComfort 45', 'QuietComfort Ultra', 'Sport Earbuds'], prices: [24990, 34990, 14990] },
+                    { brand: 'JBL', models: ['Tune 510BT', 'Tune 660NC', 'Endurance Peak 3', 'Tour One M2'], prices: [2990, 5990, 7990, 19990] },
+                    { brand: 'Sennheiser', models: ['HD 450SE', 'Momentum 4', 'CX Plus'], prices: [14990, 29990, 9990] },
+                    { brand: 'Marshall', models: ['Major IV', 'Monitor II ANC', 'Motif ANC'], prices: [9990, 19990, 14990] },
+                    { brand: 'Jabra', models: ['Elite 3', 'Elite 5', 'Elite 7 Pro'], prices: [5990, 9990, 14990] },
+                    { brand: 'Beats', models: ['Solo 3', 'Studio 3', 'Fit Pro', 'Studio Pro'], prices: [12990, 19990, 14990, 24990] },
+                ],
+                watches: [
+                    { brand: 'Apple', models: ['Watch SE 40mm', 'Watch SE 44mm', 'Watch Series 9 41mm', 'Watch Series 9 45mm', 'Watch Ultra 2'], prices: [24990, 29990, 39990, 44990, 89990] },
+                    { brand: 'Samsung', models: ['Galaxy Watch 6 40mm', 'Galaxy Watch 6 44mm', 'Galaxy Watch 6 Classic', 'Galaxy Watch 5 Pro'], prices: [19990, 24990, 29990, 34990] },
+                    { brand: 'Xiaomi', models: ['Watch S1', 'Watch S1 Active', 'Watch 2', 'Band 8'], prices: [9990, 7990, 11990, 2990] },
+                    { brand: 'Huawei', models: ['Watch GT 3', 'Watch GT 4', 'Watch D', 'Watch Ultimate'], prices: [14990, 19990, 24990, 39990] },
+                    { brand: 'Garmin', models: ['Venu 2', 'Forerunner 255', 'Fenix 7', 'Instinct 2'], prices: [29990, 34990, 59990, 24990] },
+                ],
+                tablets: [
+                    { brand: 'Apple', models: ['iPad 10', 'iPad Air', 'iPad Pro 11"', 'iPad Pro 12.9"'], prices: [44990, 69990, 99990, 119990] },
+                    { brand: 'Samsung', models: ['Galaxy Tab A8', 'Galaxy Tab S9', 'Galaxy Tab S9+', 'Galaxy Tab S9 Ultra'], prices: [19990, 54990, 74990, 99990] },
+                    { brand: 'Xiaomi', models: ['Pad 5', 'Pad 6', 'Pad 6 Pro'], prices: [29990, 34990, 44990] },
+                    { brand: 'Lenovo', models: ['Tab M10', 'Tab P12', 'Yoga Tab 11'], prices: [14990, 29990, 34990] },
+                    { brand: 'Huawei', models: ['MatePad 11', 'MatePad Air', 'MatePad Pro 12.6'], prices: [29990, 39990, 54990] },
+                ],
+                gaming: [
+                    { brand: 'Sony', models: ['PlayStation 5', 'PlayStation 5 Digital', 'DualSense', 'Pulse 3D', 'PS5 VR2'], prices: [54990, 44990, 6990, 7990, 64990] },
+                    { brand: 'Microsoft', models: ['Xbox Series X', 'Xbox Series S', 'Xbox Controller', 'Xbox Headset'], prices: [49990, 29990, 5990, 4990] },
+                    { brand: 'Nintendo', models: ['Switch OLED', 'Switch Lite', 'Switch Pro Controller', 'Joy-Con'], prices: [34990, 22990, 4990, 3990] },
+                ],
+                tv: [
+                    { brand: 'Samsung', models: ['The Frame 43"', 'Crystal UHD 50"', 'QLED 55"', 'QLED 65"', 'Neo QLED 75"'], prices: [59990, 39990, 69990, 99990, 199990] },
+                    { brand: 'LG', models: ['UP series 43"', 'NANO 50"', 'OLED 55"', 'OLED 65"', 'QNED 75"'], prices: [44990, 44990, 99990, 139990, 149990] },
+                    { brand: 'Xiaomi', models: ['TV A Pro 43"', 'TV A2 50"', 'P1E 55"', 'QLED 65"'], prices: [24990, 29990, 34990, 54990] },
+                    { brand: 'Hisense', models: ['A4G 40"', 'A6G 43"', 'U7G 55"', 'U8G 65"'], prices: [19990, 27990, 54990, 79990] },
+                ],
+                appliances: [
+                    { brand: 'Dyson', models: ['V15 Detect', 'V12 Detect', 'V11 Absolute', 'WashG1'], prices: [64990, 54990, 49990, 39990] },
+                    { brand: 'Xiaomi', models: ['Robot Vacuum-Mop 2', 'Robot Vacuum S12', 'Vacuum E12'], prices: [24990, 19990, 12990] },
+                    { brand: 'iRobot', models: ['Roomba 697', 'Roomba j7+', 'Roomba j9+', 'Braava m6'], prices: [29990, 49990, 69990, 34990] },
+                    { brand: 'DeLonghi', models: ['Magnifica S', 'Dinamica', 'Primadonna'], prices: [59990, 79990, 119990] },
+                    { brand: 'Philips', models: ['Airfryer XXL', 'Airfryer 9л', 'Perfect Care'], prices: [19990, 14990, 24990] },
+                ],
+                cameras: [
+                    { brand: 'Canon', models: ['EOS R50', 'EOS R10', 'EOS R6 II', 'EOS R5 II'], prices: [69990, 99990, 229990, 349990] },
+                    { brand: 'Sony', models: ['A7C II', 'A7 IV', 'A7R V', 'ZV-E1'], prices: [179990, 249990, 349990, 199990] },
+                    { brand: 'Nikon', models: ['Z30', 'Z50', 'Z6 III', 'Z8'], prices: [59990, 89990, 199990, 369990] },
+                    { brand: 'Fujifilm', models: ['X-T30 II', 'X-S20', 'X-T5', 'X-H2S'], prices: [89990, 119990, 159990, 229990] },
+                ],
+                audio: [
+                    { brand: 'JBL', models: ['Flip 6', 'Charge 5', 'PartyBox 110', 'Boombox 3'], prices: [9990, 14990, 29990, 39990] },
+                    { brand: 'Marshall', models: ['Acton III', 'Stanmore III', 'Woburn III', 'Kilburn II'], prices: [19990, 29990, 44990, 34990] },
+                    { brand: 'Sonos', models: ['One SL', 'Era 100', 'Era 300', 'Move'], prices: [19990, 24990, 44990, 34990] },
+                    { brand: 'Bose', models: ['Portable Home Speaker', 'SoundLink Flex', 'SoundLink Max'], prices: [19990, 14990, 29990] },
+                ],
+                ssd: [
+                    { brand: 'Samsung', models: ['870 EVO 500GB', '870 EVO 1TB', '870 EVO 2TB', '980 500GB', '980 1TB', '980 PRO 500GB', '980 PRO 1TB', '980 PRO 2TB', 'T7 500GB', 'T7 1TB', 'T7 2TB', 'T7 Shield 1TB', 'T7 Shield 2TB', '990 PRO 1TB', '990 PRO 2TB', '990 PRO 4TB'], prices: [4990, 7990, 13990, 4990, 7990, 6990, 10990, 17990, 5990, 8990, 14990, 9990, 14990, 10990, 17990, 34990] },
+                    { brand: 'WD', models: ['Blue 500GB', 'Blue 1TB', 'Blue 2TB', 'Black SN770 500GB', 'Black SN770 1TB', 'Black SN770 2TB', 'Black SN850X 1TB', 'Black SN850X 2TB'], prices: [3990, 6990, 11990, 4990, 7990, 13990, 10990, 17990] },
+                    { brand: 'Kingston', models: ['A400 240GB', 'A400 480GB', 'A400 960GB', 'KC3000 1TB', 'KC3000 2TB', 'Fury Renegade 1TB', 'Fury Renegade 2TB'], prices: [1990, 2990, 4990, 7990, 13990, 8990, 15990] },
+                    { brand: 'Crucial', models: ['BX500 240GB', 'BX500 480GB', 'BX500 1TB', 'P2 500GB', 'P2 1TB', 'P3 500GB', 'P3 1TB', 'P3 2TB', 'P5 Plus 1TB', 'P5 Plus 2TB'], prices: [1990, 2990, 4990, 3990, 5990, 2990, 4990, 8990, 7990, 13990] },
+                ],
+                external: [
+                    { brand: 'Samsung', models: ['T5 500GB', 'T5 1TB', 'T7 500GB', 'T7 1TB', 'T7 2TB', 'T7 Shield 1TB', 'T7 Shield 2TB'], prices: [4990, 6990, 5990, 8990, 14990, 9990, 14990] },
+                    { brand: 'WD', models: ['My Passport 1TB', 'My Passport 2TB', 'My Passport 4TB', 'Elements 1TB', 'Elements 2TB', 'Elements 4TB', 'WD Black P10 2TB'], prices: [5990, 8990, 12990, 4990, 7990, 10990, 7990] },
+                    { brand: 'Seagate', models: ['Expansion 1TB', 'Expansion 2TB', 'Expansion 4TB', 'Backup Plus 1TB', 'Backup Plus 2TB', 'One Touch 1TB', 'One Touch 2TB'], prices: [4990, 6990, 9990, 4990, 6990, 4990, 6990] },
+                    { brand: 'Toshiba', models: ['Canvio Basics 1TB', 'Canvio Basics 2TB', 'Canvio Flex 1TB', 'Canvio Flex 2TB'], prices: [3990, 5990, 4990, 6990] },
+                ],
+                drones: [
+                    { brand: 'DJI', models: ['Mini 4 Pro', 'Mini 3', 'Air 3', 'Mavic 3 Pro', 'Avata 2'], prices: [89990, 59990, 99990, 159990, 119990] },
+                    { brand: 'Xiaomi', models: ['Fimi X8 Mini', 'Fimi X8 SE'], prices: [39990, 29990] },
+                ],
+                smart: [
+                    { brand: 'Xiaomi', models: ['Mi Air Purifier 4', 'Mi Air Purifier 4 Pro', 'Mi Humidifier 2', 'Mi Smart Fan'], prices: [19990, 24990, 4990, 2990] },
+                    { brand: 'Dyson', models: ['Purifier Cool', 'Purifier Hot+Cool', 'Humidify+Cool'], prices: [49990, 59990, 54990] },
+                    { brand: 'Philips', models: ['Air Purifier 1000', 'Air Purifier 2000', 'Smart Air'], prices: [14990, 24990, 9990] },
+                ],
+                beauty: [
+                    { brand: 'Dyson', models: ['Airwrap', 'Supersonic', 'Corrale'], prices: [49990, 34990, 39990] },
+                    { brand: 'Oral-B', models: ['iO 5', 'iO 7', 'iO 9', 'Pro 3'], prices: [9990, 14990, 19990, 4990] },
+                    { brand: 'Philips', models: ['SatinPerfect', 'Lumea Prestige', 'VisaCare'], prices: [6990, 24990, 19990] },
+                ],
+                sports: [
+                    { brand: 'Garmin', models: ['Forerunner 55', 'Forerunner 255', 'Fenix 7', 'Venu 2 Plus'], prices: [19990, 34990, 59990, 34990] },
+                    { brand: 'Huawei', models: ['Band 8', 'Watch Fit 2', 'Watch GT 4'], prices: [2990, 7990, 19990] },
+                    { brand: 'Xiaomi', models: ['Band 8', 'Band 8 Active', 'Watch S1'], prices: [2990, 1990, 9990] },
+                ],
+            };
+
+            const shops = ['wildberries', 'ozon', 'yandex'];
+            const products = [];
+            let id = 1;
+
+            Object.entries(brands).forEach(([category, brandList]) => {
+                const images = CATEGORY_IMAGES[category] || CATEGORY_IMAGES.smartphones;
+                
+                brandList.forEach(brand => {
+                    brand.models.forEach(model => {
+                        const basePrice = brand.prices[0] || 10000;
+                        
+                        [1, 2, 3, 4].forEach(variant => {
+                            const price = Math.round(basePrice * (0.8 + Math.random() * 0.6));
+                            const oldPrice = Math.random() > 0.5 ? Math.round(price * (1.1 + Math.random() * 0.3)) : null;
+                            const img = images[Math.floor(Math.random() * images.length)];
+                            
+                            products.push({
+                                id: id++,
+                                name: `${brand.brand} ${model}${variant > 1 ? ' ' + variant : ''}`,
+                                desc: `${category} ${brand.brand.toLowerCase()}`,
+                                img: img,
+                                price: price,
+                                oldPrice: oldPrice,
+                                rating: (4 + Math.random()).toFixed(1),
+                                reviews: Math.floor(Math.random() * 10000) + 100,
+                                shop: shops[Math.floor(Math.random() * 3)],
+                                inStock: Math.random() > 0.2,
+                                delivery: Math.random() > 0.1,
+                                deliveryDays: Math.floor(Math.random() * 7) + 1,
+                                distance: (Math.random() * 10).toFixed(1)
+                            });
+                        });
+                    });
+                });
+            });
+
+            return products;
+        }
+
+        const PRODUCTS = generateProducts();
+
+        function formatPrice(n) { return n.toLocaleString('ru-RU') + ' ₽'; }
+        function stars(r) { return '★'.repeat(Math.floor(r)) + (r % 1 >= 0.5 ? '½' : ''); }
+        function shopClass(s) { return s === 'wildberries' ? 'shop-wb' : s === 'ozon' ? 'shop-ozon' : 'shop-yandex'; }
+        function shopName(s) { return s === 'wildberries' ? 'Wildberries' : s === 'ozon' ? 'Ozon' : 'Яндекс.Маркет'; }
+        
+        function getCategoryEmoji(name) {
+            const n = name.toLowerCase();
+            if (n.includes('iphone') || n.includes('galaxy') || n.includes('xiaomi') || n.includes('redmi') || n.includes('poco') || n.includes('huawei') || n.includes('honor') || n.includes('oneplus') || n.includes('realme') || n.includes('oppo') || n.includes('vivo') || n.includes('google pixel') || n.includes('pixel')) return '📱';
+            if (n.includes('macbook') || n.includes('laptop') || n.includes('ноутбук') || n.includes('notebook')) return '💻';
+            if (n.includes('airpods') || n.includes('headphone') || n.includes('наушник') || n.includes('earbuds') || n.includes('buds')) return '🎧';
+            if (n.includes('watch') || n.includes('часы') || n.includes('band') || n.includes('garmin') || n.includes('фитнес')) return '⌚';
+            if (n.includes('ipad') || n.includes('tablet') || n.includes('планшет') || n.includes('tab')) return '📲';
+            if (n.includes('playstation') || n.includes('ps5') || n.includes('xbox') || n.includes('nintendo') || n.includes('switch') || n.includes('консоль') || n.includes('dualsense') || n.includes('controller')) return '🎮';
+            if (n.includes('tv') || n.includes('телевизор') || n.includes('oled') || n.includes('qled') || n.includes('lcd')) return '📺';
+            if (n.includes('roomba') || n.includes('robot') || n.includes('пылесос') || n.includes('vacuum') || n.includes('dyson') || n.includes('кофемашина') || n.includes('airfryer') || n.includes('очиститель')) return '🏠';
+            if (n.includes('eos') || n.includes('canon') || n.includes('sony a7') || n.includes('nikon') || n.includes('fujifilm') || n.includes('камер') || n.includes('camera') || n.includes('фотокамер')) return '📷';
+            if (n.includes('jbl') || n.includes('marshall') || n.includes('sonos') || n.includes('bose') || n.includes('колонк') || n.includes('speaker') || n.includes('audio')) return '🔊';
+            if (n.includes('keyboard') || n.includes('клавиатур') || n.includes('keychron')) return '⌨️';
+            if (n.includes('mouse') || n.includes('мыш') || n.includes('logitech') || n.includes('razer') || n.includes('corsair')) return '🖱️';
+            if (n.includes('ssd') || n.includes('hard') || n.includes('диск') || n.includes('hdd') || n.includes('wd ') || n.includes('western') || n.includes('seagate') || n.includes('toshiba') || n.includes('kingston') || n.includes('crucial')) return '💾';
+            if (n.includes('drone') || n.includes('дрон') || n.includes('dji') || n.includes('fimi')) return '🚁';
+            if (n.includes('gopro') || n.includes('экшн') || n.includes('action')) return '🎥';
+            if (n.includes('airwrap') || n.includes('dyson') || n.includes('supersonic') || n.includes('фен') || n.includes('hair')) return '💇';
+            if (n.includes('toothbrush') || n.includes('зубн') || n.includes('oral-b')) return '🪥';
+            if (n.includes('forerunner') || n.includes('gamin') || n.includes('спорт') || n.includes('браслет')) return '🏃';
+            if (n.includes('ev') || n.includes('evo') || n.includes('870') || n.includes('980') || n.includes('990') || n.includes('t5') || n.includes('t7')) return '💾';
+            return '📦';
+        }
+        
+        function getBrandName(name) {
+            const n = name.toLowerCase();
+            if (n.includes('apple') || n.includes('iphone') || n.includes('ipad') || n.includes('macbook') || n.includes('airpods') || n.includes('watch')) return 'Apple';
+            if (n.includes('samsung') || n.includes('galaxy')) return 'Samsung';
+            if (n.includes('xiaomi') || n.includes('redmi') || n.includes('poco')) return 'Xiaomi';
+            if (n.includes('sony')) return 'Sony';
+            if (n.includes('huawei') || n.includes('honor')) return 'Huawei';
+            if (n.includes('google') || n.includes('pixel')) return 'Google';
+            if (n.includes('oneplus')) return 'OnePlus';
+            if (n.includes('realme')) return 'Realme';
+            if (n.includes('oppo')) return 'OPPO';
+            if (n.includes('vivo')) return 'Vivo';
+            if (n.includes('asus')) return 'ASUS';
+            if (n.includes('lenovo')) return 'Lenovo';
+            if (n.includes('hp ')) return 'HP';
+            if (n.includes('dell')) return 'Dell';
+            if (n.includes('acer')) return 'Acer';
+            if (n.includes('msi')) return 'MSI';
+            if (n.includes('canon')) return 'Canon';
+            if (n.includes('nikon')) return 'Nikon';
+            if (n.includes('fujifilm')) return 'Fujifilm';
+            if (n.includes('jbl')) return 'JBL';
+            if (n.includes('marshall')) return 'Marshall';
+            if (n.includes('bose')) return 'Bose';
+            if (n.includes('sonos')) return 'Sonos';
+            if (n.includes('logitech')) return 'Logitech';
+            if (n.includes('keychron')) return 'Keychron';
+            if (n.includes('razer')) return 'Razer';
+            if (n.includes('corsair')) return 'Corsair';
+            if (n.includes('anker')) return 'Anker';
+            if (n.includes('wd ') || n.includes('western')) return 'WD';
+            if (n.includes('kingston')) return 'Kingston';
+            if (n.includes('crucial')) return 'Crucial';
+            if (n.includes('seagate')) return 'Seagate';
+            if (n.includes('toshiba')) return 'Toshiba';
+            if (n.includes('dji')) return 'DJI';
+            if (n.includes('dyson')) return 'Dyson';
+            if (n.includes('irobot')) return 'iRobot';
+            if (n.includes('delonghi')) return 'DeLonghi';
+            if (n.includes('philips')) return 'Philips';
+            if (n.includes('garmin')) return 'Garmin';
+            if (n.includes('beats')) return 'Beats';
+            if (n.includes('sennheiser')) return 'Sennheiser';
+            if (n.includes('jabra')) return 'Jabra';
+            if (n.includes('playstation') || n.includes('ps5')) return 'PlayStation';
+            if (n.includes('xbox')) return 'Xbox';
+            if (n.includes('nintendo')) return 'Nintendo';
+            if (n.includes('lg')) return 'LG';
+            if (n.includes('hisense')) return 'Hisense';
+            return 'Tech';
+        }
+
+        function renderProducts(products) {
+            const grid = document.getElementById('productsGrid');
+            const city = document.getElementById('customCity').value;
+            const cityText = city ? `в ${city}` : '';
+            
+            grid.innerHTML = products.map(p => `
+                <div class="product-card">
+                    <div class="product-image">
+                        ${p.oldPrice ? `<span class="discount-badge">-${Math.round((1-p.price/p.oldPrice)*100)}%</span>` : ''}
+                        <a href="javascript:void(0)" onclick="window.open('${p.shop === 'wildberries' ? 'https://wildberries.ru' : p.shop === 'ozon' ? 'https://ozon.ru' : 'https://market.yandex.ru'}', '_blank')" class="shop-logo shop-logo-${p.shop}" title="Перейти на ${shopName(p.shop)}" style="cursor: pointer;">
+                            ${p.shop === 'wildberries' ? 'WB' : ''}
+                            ${p.shop === 'ozon' ? 'OZ' : ''}
+                            ${p.shop === 'yandex' ? 'ЯМ' : ''}
+                        </a>
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%;">
+                            <span style="font-size: 64px;">${getCategoryEmoji(p.name)}</span>
+                            <span style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin-top: 8px; text-align: center; padding: 0 8px;">${getBrandName(p.name)}</span>
+                        </div>
+                    </div>
+                    <div class="product-title">${p.name}</div>
+                    <div class="product-rating">
+                        <span class="stars">${stars(parseFloat(p.rating))}</span>
+                        <span>${p.rating} (${parseInt(p.reviews).toLocaleString()})</span>
+                    </div>
+                    <div class="product-price">
+                        <span class="price-current">${formatPrice(p.price)}</span>
+                        ${p.oldPrice ? `<span class="price-old">${formatPrice(p.oldPrice)}</span>` : ''}
+                    </div>
+                    <div class="product-meta">
+                        <span class="shop-badge ${shopClass(p.shop)}">${shopName(p.shop)}</span>
+                        <span class="distance">${p.distance} км</span>
+                    </div>
+                    <div class="product-tags">
+                        ${p.inStock ? '<span class="tag tag-instock">В наличии</span>' : ''}
+                        ${p.delivery ? `<span class="tag tag-delivery">${p.deliveryDays} дн.</span>` : ''}
+                    </div>
+                    <a href="javascript:void(0)" onclick="window.open('${p.shop === 'wildberries' ? 'https://wildberries.ru/catalog/0/search.aspx?search=' : p.shop === 'ozon' ? 'https://ozon.ru/search/?text=' : 'https://market.yandex.ru/search?text='}${encodeURIComponent(p.name)}', '_blank')" class="buy-btn">Купить на ${shopName(p.shop)}</a>
+                </div>
+            `).join('');
+            document.getElementById('totalResults').textContent = `Найдено: ${products.length} предложений ${cityText}`;
+        }
+
+        function filterProducts() {
+            const query = new URLSearchParams(window.location.search).get('q') || '';
+            const filterWb = document.getElementById('filterWb').checked;
+            const filterOzon = document.getElementById('filterOzon').checked;
+            const filterYandex = document.getElementById('filterYandex').checked;
+            const sort = document.getElementById('sortSelect').value;
+            const deliveryTime = parseInt(document.getElementById('deliveryTime').value) || 0;
+            const priceMin = parseInt(document.getElementById('priceMin').value) || 0;
+            const priceMax = parseInt(document.getElementById('priceMax').value) || Infinity;
+
+            let filtered = PRODUCTS.filter(p => {
+                const q = query.toLowerCase();
+                const matchesQuery = p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q);
+                const matchesShop = (filterWb && p.shop === 'wildberries') || 
+                                    (filterOzon && p.shop === 'ozon') || 
+                                    (filterYandex && p.shop === 'yandex');
+                const matchesDelivery = !deliveryTime || !p.delivery || p.deliveryDays <= deliveryTime;
+                const matchesPrice = p.price >= priceMin && p.price <= priceMax;
+                return matchesQuery && matchesShop && matchesDelivery && matchesPrice;
+            });
+
+            if (sort === 'price') filtered.sort((a,b) => a.price - b.price);
+            else if (sort === 'rating') filtered.sort((a,b) => b.rating - a.rating);
+            else if (sort === 'distance') filtered.sort((a,b) => a.distance - b.distance);
+
+            renderProducts(filtered);
+        }
+
+        function doSearch() {
+            const q = document.getElementById('mainSearch').value;
+            if (!q.trim()) return;
+            window.location.href = `?q=${encodeURIComponent(q.trim())}`;
+        }
+
+        document.getElementById('mainSearch').addEventListener('keypress', e => { if (e.key === 'Enter') doSearch(); });
+
+        function quickSearch(q) {
+            event.preventDefault();
+            window.location.href = `?q=${encodeURIComponent(q)}`;
+        }
+
+        ['filterWb', 'filterOzon', 'filterYandex', 'sortSelect', 'deliveryTime'].forEach(id => {
+            document.getElementById(id).addEventListener('change', filterProducts);
+        });
+        
+        document.getElementById('customCity').addEventListener('input', filterProducts);
+        document.getElementById('priceMin').addEventListener('input', filterProducts);
+        document.getElementById('priceMax').addEventListener('input', filterProducts);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const query = urlParams.get('q');
+        if (query) {
+            document.getElementById('hero').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('queryText').textContent = query;
+            document.getElementById('mainSearch').value = query;
+            filterProducts();
+        }
+        
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            document.getElementById('themeIcon').textContent = isDark ? '🌙' : '☀️';
+            document.getElementById('themeText').textContent = isDark ? 'Тёмная' : 'Светлая';
+        }
+        
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('themeIcon').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            document.getElementById('themeText').textContent = savedTheme === 'dark' ? 'Светлая' : 'Тёмная';
+        }
+    </script>
+</body>
+</html>

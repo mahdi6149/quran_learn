@@ -1,0 +1,14 @@
+{
+  "name": "zdorovve-v-dom",
+  "version": "1.0.0",
+  "description": "Интернет-магазин витаминов и БАДов",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'No build required'"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.0"
+  }
+}
